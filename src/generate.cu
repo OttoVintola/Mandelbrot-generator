@@ -96,8 +96,8 @@ __global__ void generate(int width, int height, int max_iter,
 
         int iter = 0;
 
-        float cx = xSpace[j];
-        float cy = ySpace[i];
+        float cx = xSpace[i];
+        float cy = ySpace[j];
 
 
         while ((x*x + y*y <= 4) && (iter < max_iter)) {
@@ -108,7 +108,7 @@ __global__ void generate(int width, int height, int max_iter,
         }
 
         RGB color = palette[iter];
-        result[width*i + j] = color;
+        result[width*j + i] = color;
 
 }
 
@@ -148,12 +148,12 @@ int main(int argc, char* argv[]) {
 
     // Mem for xSpace and ySpace
     float* xPtr = NULL;
-    CHECK(cudaMalloc( (void**)&xPtr, width*height*sizeof(float))); 
-    CHECK(cudaMemcpy( xPtr, xSpace.data(), width*height*sizeof(float), cudaMemcpyHostToDevice));
+    CHECK(cudaMalloc( (void**)&xPtr, width*sizeof(float))); 
+    CHECK(cudaMemcpy( xPtr, xSpace.data(), width*sizeof(float), cudaMemcpyHostToDevice));
 
     float* yPtr = NULL;
-    CHECK(cudaMalloc( (void**)&yPtr, width*height*sizeof(float)));
-    CHECK(cudaMemcpy( yPtr, ySpace.data(), width*height*sizeof(float), cudaMemcpyHostToDevice));
+    CHECK(cudaMalloc( (void**)&yPtr, height*sizeof(float)));
+    CHECK(cudaMemcpy( yPtr, ySpace.data(), height*sizeof(float), cudaMemcpyHostToDevice));
 
     RGB* d_palette = NULL;
     CHECK(cudaMalloc( (void**)&d_palette, max_iter*sizeof(RGB)));

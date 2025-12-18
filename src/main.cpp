@@ -82,10 +82,7 @@ int main(int argc, char* argv[]) {
 
     // colors 
     std::vector<RGB> result;
-
-    // TODO: Make these into arguments
-    int xDom = 500;
-    int yDom = 500;
+    
     int max_iter = 1000;
 
     // Scale x to be in (-2.00 to 0.47)
