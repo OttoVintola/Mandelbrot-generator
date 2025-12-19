@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <cstdio>
+#include <chrono>
 #include "common.hpp"
 
 
@@ -32,6 +33,8 @@ int main(int argc, char* argv[]) {
 
     std::vector<RGB> palette = make_palette(max_iter);
 
+    // Time start 
+    auto start = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < width; ++i) {
         for (int j = 0; j < height; ++j) {
             float x = 0.0f;
@@ -49,6 +52,13 @@ int main(int argc, char* argv[]) {
         result.push_back(color);
         }
     }
-    save_image(result, width, height);    
+    // Time end
+    auto end = std::chrono::high_resolution_clock::now();
 
+
+    save_image(result, width, height);    
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    std::cout << width << "," << height << "," << duration.count() << std::endl;
+    
+    return 0;
 }
