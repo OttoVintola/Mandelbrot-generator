@@ -1,5 +1,5 @@
-#include "common.hpp"
 #include <opencv2/opencv.hpp>
+#include "common.hpp"
 
 std::vector<float> linspace(float from, float to, int elements) {
     std::vector<float> result(elements);

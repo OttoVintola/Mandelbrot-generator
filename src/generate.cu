@@ -5,50 +5,7 @@
 #include <cstdlib>
 #include <cuda_runtime.h>
 #include "common.hpp"
-
-
-static inline void check(cudaError_t err, const char* context) {
-    if (err != cudaSuccess) {
-        std::cerr << "CUDA error: " << context << ": "
-            << cudaGetErrorString(err) << std::endl;
-        std::exit(EXIT_FAILURE);
-    }
-}
-
-#define CHECK(x) check(x, #x)
-
-int divup(int a, int b) {
-    return (a + b - 1)/b;
-};
-
-__global__ void generate(int width, int height, int max_iter, 
-                         const float* xSpace, const float* ySpace, 
-                         const RGB* palette, RGB* result) {
-
-        int i = threadIdx.x + blockIdx.x * blockDim.x;
-        int j = threadIdx.y + blockIdx.y * blockDim.y;
-
-        if (i >= width || j >= height) return;
-
-        float x = 0.0f;
-        float y = 0.0f;
-
-        int iter = 0;
-
-        float cx = xSpace[i];
-        float cy = ySpace[j];
-
-
-        while ((x*x + y*y <= 4) && (iter < max_iter)) {
-            float xtemp = x*x - y*y + cx;
-            y = 2*x*y + cy;
-            x = xtemp;
-            ++iter;
-        }
-
-        RGB color = palette[iter];
-        result[width*j + i] = color;
-}
+#include "kernel.cuh"
 
 
 int main(int argc, char* argv[]) {
@@ -73,7 +30,6 @@ int main(int argc, char* argv[]) {
 
     std::vector<RGB> palette = make_palette(max_iter);
 
-    // Call CUDA 
     cudaStream_t stream = 0;
     size_t nSRAMBytesPerBlock = 0;
 
