@@ -7,7 +7,7 @@
 
 
 // Mandelbrot set renderer
-int main(int argc, char* argv[]) {
+void main(int argc, char* argv[]) {
 
     int width, height = 0;
 
@@ -59,6 +59,5 @@ int main(int argc, char* argv[]) {
     save_image(result, width, height);    
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
     std::cout << width << "," << height << "," << duration.count() << std::endl;
-    
-    return 0;
+
 }

@@ -19,10 +19,37 @@ The naive version implemented in C++ is significantly slower than the CUDA imple
   <img src="./results/gpu-graph.png" width="45%" />
 </p>
 
-The following image shows a Mandelbrot set generated at a resolution of 4096x4096 pixels using the CUDA implementation.
+The following image shows a Mandelbrot set generated at a resolution of 4000x4000 pixels using the CUDA implementation.
 
-![Mandelbrot set at 4096x4096 resolution](output.png)
+![Mandelbrot set at 4000x4000 resolution](output.png)
 
+## Python Bindings
+
+The CUDA/C++ code is additionally binded to python through [Pybind11](https://pybind11.readthedocs.io/en/stable/). To compile the bindings to the ```mandelbrot-venv``` use the following build command:
+
+```bash
+nvcc -shared -Xcompiler -fPIC \
+    -o src/mandelbrot-venv/lib/python3.12/site-packages/mandelbrot$(src/mandelbrot-venv/bin/python3 -c "import sysconfig; print(sysconfig.get_config_var('EXT_SUFFIX'))") \
+    src/bindings.cu src/pybind_core.cu src/kernel.cu src/common.cpp \
+    $(src/mandelbrot-venv/bin/python3 -m pybind11 --includes)
+```
+
+Then the functions can be called normally and visualized through ```matplotlib```:
+
+```python
+import mandelbrot
+import matplotlib.pyplot as plt
+
+
+img_gpu = mandelbrot.generate(2000, 2000, use_cuda=True)
+print(img_gpu.shape)
+
+plt.imshow(img_gpu)
+plt.show()
+```
+This gives: (2000, 2000, 3).
+
+To use the CPU version, switch the ```use_cuda``` flag to ```False``` because it defaults to ```True```. 
 
 ## Repository contents
 

@@ -1,41 +1,44 @@
-#include <stdio.h>
-#include <iostream>
-#include <vector>
-#include <cstdio>
-#include <cstdlib>
-#include <cuda_runtime.h>
-#include "common.hpp"
+#include "pybind_core.cuh"
 #include "kernel.cuh"
+#include <cuda_runtime.h>
 
 
-void main(int argc, char* argv[]) {
-    int width, height = 0;
+std::vector<RGB> generate_cpu(int width, int height, int max_iter,
+                              const std::vector<float>& xSpace,
+                              const std::vector<float>& ySpace,
+                              const std::vector<RGB>& palette) {
+    std::vector<RGB> result;
+    result.reserve(width * height);
 
-    for (int i = 0; i < argc; ++i) {
-        std::string arg = argv[i];
-        if (arg.rfind("--x=", 0) == 0) {
-            width = std::atoi(arg.substr(4).c_str());
-        } else if (arg.rfind("--y=", 0) == 0) {
-            height = std::atoi(arg.substr(4).c_str());
+    for (int i = 0; i < width; ++i) {
+        for (int j = 0; j < height; ++j) {
+            float x = 0.0f;
+            float y = 0.0f;
+            int iter = 0;
+
+            while ((x*x + y*y <= 4) && (iter < max_iter)) {
+                float xtemp = x*x - y*y + xSpace[j];
+                y = 2*x*y + ySpace[i];
+                x = xtemp;
+                ++iter;
+            }
+            result.push_back(palette[iter < max_iter ? iter : max_iter - 1]);
         }
     }
+    return result;
+}
 
-    int max_iter = 1000;
 
-    // Scale x to be in (-2.00 to 0.47) 
-    std::vector<float> xSpace = linspace(-2.00, 0.47, width); 
-    
-    // Same for y in (-1.12, 1.12)
-    std::vector<float> ySpace = linspace(-1.12, 1.12, height);
-
-    std::vector<RGB> palette = make_palette(max_iter);
+std::vector<RGB> generate_gpu(int width, int height, int max_iter,
+                              const std::vector<float>& xSpace,
+                              const std::vector<float>& ySpace,
+                              const std::vector<RGB>& palette) {
 
     cudaStream_t stream = 0;
     size_t nSRAMBytesPerBlock = 0;
 
     dim3 blockSize(16, 16);
     dim3 gridSize( divup(width, blockSize.x), divup(height, blockSize.y) );
-
 
     RGB* d_result = NULL;
     CHECK(cudaMalloc( (void**)&d_result, width*height*sizeof(RGB)));
@@ -63,6 +66,5 @@ void main(int argc, char* argv[]) {
     CHECK(cudaFree(yPtr));
     CHECK(cudaFree(d_palette));
 
-    save_image(result, width, height);
-
+    return result;
 }
